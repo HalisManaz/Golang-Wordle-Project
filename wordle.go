@@ -1,7 +1,6 @@
 package main
 
 import (
-	. "HW3/functions"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -10,7 +9,7 @@ import (
 
 var guessWord string
 var feedback = "_____"
-var feedbackColor = ""
+var feedbackColor = "_____"
 var round = 0
 
 func main() {
@@ -64,7 +63,7 @@ func main() {
 				// For correct position digit impose O sign
 				for _, index := range intersections {
 					feedback = feedback[:index] + "O" + feedback[index+1:]
-					feedbackColor = feedbackColor + "<fg=255,255,255;bg=0,170,0;op=underscore;>" + keyGuess + "</>"
+					feedbackColor = feedbackColor[:index] + ("<fg=255,255,255;bg=0,170,0;op=underscore;>" + keyGuess + "</>") + feedbackColor[:index+1]
 				}
 				continue
 			} else if len(wordMap[keyGuess]) > 0 {
@@ -73,17 +72,20 @@ func main() {
 
 				for _, index := range guessWordMap[keyGuess] {
 					feedback = feedback[:index] + "?" + feedback[index+1:]
-					feedbackColor += "<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>"
+					feedbackColor = feedbackColor[:index] + ("<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>") + feedbackColor[:index+1]
 				}
 
 				contains--
 			} else {
-				feedbackColor += "<fg=255,255,255;op=underscore;>" + keyGuess + "</>"
+				for _, index := range guessWordMap[keyGuess] {
+					feedbackColor = feedbackColor[:index] + ("<fg=255,255,255;op=underscore;>" + keyGuess + "</>") + feedbackColor[:index+1]
+				}
+
 			}
 		}
 		//fmt.Print("\033c")
 		fmt.Println(feedback)
-		fmt.Println(feedbackColor)
+		//color.Println(feedbackColor)
 
 		// When find number correctly exit the program
 		if position == 5 {
@@ -97,6 +99,35 @@ func main() {
 		}
 		// Restart feedback for next round
 		feedback = "_____"
+		feedbackColor = "_____"
 		round++
 	}
+}
+
+func Intersection(first, second []int) []int {
+	intersections := []int{}
+
+	for _, i := range first {
+		for _, j := range second {
+			if i == j {
+				intersections = append(intersections, i)
+			}
+		}
+	}
+	return intersections
+}
+
+// difference returns the elements in `a` that aren't in `b`.
+func Difference(a, b []int) []int {
+	mb := make(map[int]struct{}, len(b))
+	for _, x := range b {
+		mb[x] = struct{}{}
+	}
+	var diff []int
+	for _, x := range a {
+		if _, found := mb[x]; !found {
+			diff = append(diff, x)
+		}
+	}
+	return diff
 }
