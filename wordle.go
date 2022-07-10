@@ -2,20 +2,23 @@ package main
 
 import (
 	"fmt"
+	"github.com/gookit/color"
+	"golang.org/x/exp/slices"
 	"math/rand"
 	"strings"
 	"time"
 )
 
 var guessWord string
-var feedback = "_____"
-var feedbackColor = "_____"
+var feedbackColor = ""
 var round = 0
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	randNum := rand.Intn(len(ValidWordList))
 	word := strings.ToUpper(ValidWordList[randNum])
+	word = "SURAS"
+
 	fmt.Println(word, randNum)
 	fmt.Println("Welcome to Golang Word-le Project")
 	fmt.Println("----------------------------------------")
@@ -45,47 +48,49 @@ func main() {
 		}
 
 		guessWordMap := make(map[string][]int)
+		guessWordKeys := make([]string, 0, len(guessWordMap))
 
 		for i := 0; i <= 4; i++ {
 			guessWordMap[guessWord[i:i+1]] = append(guessWordMap[guessWord[i:i+1]], i)
+			guessWordKeys = append(guessWordKeys, guessWord[i:i+1])
 		}
 
 		contains := 0
 		position := 0
-		for keyGuess := range guessWordMap {
+		iteration := 0
+		for index, keyGuess := range guessWordKeys {
 			// If position match occurs
 			// Find intersection of position of digit between guess number and secret number
 			intersections := Intersection(guessWordMap[keyGuess], wordMap[keyGuess])
 
 			if len(intersections) > 0 {
-				position += len(intersections)
+				//position += len(intersections)
+				position += 1
 
 				// For correct position digit impose O sign
-				for _, index := range intersections {
-					feedback = feedback[:index] + "O" + feedback[index+1:]
-					feedbackColor = feedbackColor[:index] + ("<fg=255,255,255;bg=0,170,0;op=underscore;>" + keyGuess + "</>") + feedbackColor[:index+1]
+				if slices.Contains(intersections, index) && index == iteration {
+					feedbackColor += "<fg=255,255,255;bg=0,170,0;op=underscore;>" + keyGuess + "</>"
+				} else if index == iteration {
+					feedbackColor += "<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>"
+				} else {
+					feedbackColor += "<fg=255,255,255;op=underscore;>" + keyGuess + "</>"
 				}
+				iteration++
 				continue
 			} else if len(wordMap[keyGuess]) > 0 {
 				// If there is no position matches but digit contains in secret number
 				// For contains but no position matching digit impose ? sign
-
-				for _, index := range guessWordMap[keyGuess] {
-					feedback = feedback[:index] + "?" + feedback[index+1:]
-					feedbackColor = feedbackColor[:index] + ("<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>") + feedbackColor[:index+1]
-				}
+				feedbackColor += "<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>"
 
 				contains--
 			} else {
-				for _, index := range guessWordMap[keyGuess] {
-					feedbackColor = feedbackColor[:index] + ("<fg=255,255,255;op=underscore;>" + keyGuess + "</>") + feedbackColor[:index+1]
-				}
+				feedbackColor += "<fg=255,255,255;op=underscore;>" + keyGuess + "</>"
 
 			}
+			iteration++
 		}
 		//fmt.Print("\033c")
-		fmt.Println(feedback)
-		//color.Println(feedbackColor)
+		color.Println(feedbackColor)
 
 		// When find number correctly exit the program
 		if position == 5 {
@@ -98,8 +103,7 @@ func main() {
 
 		}
 		// Restart feedback for next round
-		feedback = "_____"
-		feedbackColor = "_____"
+		feedbackColor = ""
 		round++
 	}
 }
