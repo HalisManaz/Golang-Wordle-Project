@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/gookit/color"
-	"golang.org/x/exp/slices"
 	"math/rand"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 )
@@ -14,96 +15,121 @@ var feedbackColor = ""
 var round = 0
 
 func main() {
+	// Create number random and select random words in list
 	rand.Seed(time.Now().UnixNano())
 	randNum := rand.Intn(len(ValidWordList))
 	word := strings.ToUpper(ValidWordList[randNum])
-	word = "SURAS"
-
 	fmt.Println(word, randNum)
 	fmt.Println("Welcome to Golang Word-le Project")
 	fmt.Println("----------------------------------------")
 
-	// Create map for storing digits and position of digits for guess number and secret number
-	// Convert numbers to string for indexing
+	// Create map for storing letter and position of letters for Word-le word
 	wordMap := make(map[string][]int)
 
 	for i := 0; i <= 4; i++ {
 		wordMap[word[i:i+1]] = append(wordMap[word[i:i+1]], i)
 	}
 
-	for round <= 5 {
+	for round < 5 {
 		// Input your guess number
-		//fmt.Printf("Secret number: %v\n", secretNum)
 		//fmt.Println("Guess the Word-le word:\t")
-		_, _ = fmt.Scan(&guessWord)
+		_, _ = fmt.Scanln(&guessWord)
+		c := exec.Command("cmd", "/c", "cls")
+		c.Stdout = os.Stdout
+		c.Run()
+		//color.Println("<fg=255,255,255;>" + "_____" + "</>")
+
 		guessWord := strings.ToUpper(guessWord)
 
-		// Input zero to exit
-		if guessWord == "" {
+		// Input XXXXX to exit
+		if guessWord == "XXXXX" {
 			break
 		} else if len([]rune(guessWord)) != 5 {
+			// Check input length is equal to 5 or not
 			err := fmt.Errorf("The word you enter must be five letters! Your input:%+v and input length: %+v", guessWord, len([]rune(guessWord)))
 			fmt.Println(err.Error())
 			continue
 		}
 
+		// Create map for storing letter and position of letters for guess word
 		guessWordMap := make(map[string][]int)
-		guessWordKeys := make([]string, 0, len(guessWordMap))
 
 		for i := 0; i <= 4; i++ {
 			guessWordMap[guessWord[i:i+1]] = append(guessWordMap[guessWord[i:i+1]], i)
-			guessWordKeys = append(guessWordKeys, guessWord[i:i+1])
 		}
 
-		contains := 0
-		position := 0
-		iteration := 0
-		for index, keyGuess := range guessWordKeys {
-			// If position match occurs
-			// Find intersection of position of digit between guess number and secret number
-			intersections := Intersection(guessWordMap[keyGuess], wordMap[keyGuess])
-
-			if len(intersections) > 0 {
-				//position += len(intersections)
-				position += 1
-
-				// For correct position digit impose O sign
-				if slices.Contains(intersections, index) && index == iteration {
-					feedbackColor += "<fg=255,255,255;bg=0,170,0;op=underscore;>" + keyGuess + "</>"
-				} else if index == iteration {
-					feedbackColor += "<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>"
-				} else {
-					feedbackColor += "<fg=255,255,255;op=underscore;>" + keyGuess + "</>"
-				}
-				iteration++
-				continue
-			} else if len(wordMap[keyGuess]) > 0 {
-				// If there is no position matches but digit contains in secret number
-				// For contains but no position matching digit impose ? sign
-				feedbackColor += "<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>"
-
-				contains--
-			} else {
-				feedbackColor += "<fg=255,255,255;op=underscore;>" + keyGuess + "</>"
-
+		// Create default feedback with non-color guess word
+		feedbackColorMaps := make(map[int]string)
+		for keyGuess, indexes := range guessWordMap {
+			for i := 0; i < len(indexes); i++ {
+				add := "<fg=255,255,255;op=underscore;>" + keyGuess + "</>"
+				feedbackColorMaps[i] = add
 			}
-			iteration++
 		}
-		//fmt.Print("\033c")
-		color.Println(feedbackColor)
 
-		// When find number correctly exit the program
+		position := 0
+		for keyGuess := range guessWordMap {
+
+			comparisonMap := map[int]int{}
+
+			// Find intersection and difference of index of letters of guess word
+			intersections := Intersection(guessWordMap[keyGuess], wordMap[keyGuess])
+			diff := Difference(guessWordMap[keyGuess], wordMap[keyGuess])
+			diff2 := Difference(wordMap[keyGuess], guessWordMap[keyGuess])
+
+			// Add intersection values
+			for i := 0; i < len(intersections); i++ {
+				comparisonMap[intersections[i]] = intersections[i]
+			}
+
+			// Add difference values
+			for i := 0; i < len(diff); i++ {
+				if len(diff2) == 0 || i >= len(diff2) {
+					comparisonMap[diff[i]] = -1
+				} else {
+					comparisonMap[diff[i]] = diff2[i]
+				}
+			}
+
+			for guessIndex, wordIndex := range comparisonMap {
+				if wordIndex == -1 {
+					// If not contains
+					add := "<fg=255,255,255;op=underscore,bold;>" + keyGuess + "</>"
+					feedbackColorMaps[guessIndex] = add
+					continue
+				} else if wordIndex != guessIndex {
+					// Contains but position wrong
+					add := "<fg=255,255,255;bg=200,200,0;op=underscore,bold;>" + keyGuess + "</>"
+					feedbackColorMaps[guessIndex] = add
+				} else if wordIndex == guessIndex {
+					// Contains and position are correct
+					add := "<fg=255,255,255;bg=0,170,0;op=underscore,bold;>" + keyGuess + "</>"
+					feedbackColorMaps[guessIndex] = add
+					position++
+				}
+			}
+		}
+
+		for i := 0; i <= 4; i++ {
+			// Create colorful feedback
+			feedbackColor += feedbackColorMaps[i]
+		}
+
+		color.Println(feedbackColor)
+		feedbackColor += "\n"
+
+		// When find Word-le words correctly exit the program
 		if position == 5 {
 			fmt.Println("----------------------------------------")
 			fmt.Printf("Congratulations! You find Wordle word!")
 			break
-		} else if round == 5 {
+		} else if round == 4 {
 			fmt.Println("----------------------------------------")
 			fmt.Printf("GAME OVER!")
 
 		}
 		// Restart feedback for next round
-		feedbackColor = ""
+		//feedbackColor = ""
 		round++
 	}
 }
