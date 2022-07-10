@@ -10,6 +10,7 @@ import (
 
 var guessWord string
 var feedback = "_____"
+var feedbackColor = ""
 var round = 0
 
 func main() {
@@ -63,23 +64,26 @@ func main() {
 				// For correct position digit impose O sign
 				for _, index := range intersections {
 					feedback = feedback[:index] + "O" + feedback[index+1:]
+					feedbackColor = feedbackColor + "<fg=255,255,255;bg=0,170,0;op=underscore;>" + keyGuess + "</>"
 				}
 				continue
-			}
-
-			if len(wordMap[keyGuess]) > 0 {
+			} else if len(wordMap[keyGuess]) > 0 {
 				// If there is no position matches but digit contains in secret number
 				// For contains but no position matching digit impose ? sign
 
 				for _, index := range guessWordMap[keyGuess] {
 					feedback = feedback[:index] + "?" + feedback[index+1:]
+					feedbackColor += "<fg=255,255,255;bg=200,200,0;op=underscore;>" + keyGuess + "</>"
 				}
 
 				contains--
+			} else {
+				feedbackColor += "<fg=255,255,255;op=underscore;>" + keyGuess + "</>"
 			}
 		}
 		//fmt.Print("\033c")
 		fmt.Println(feedback)
+		fmt.Println(feedbackColor)
 
 		// When find number correctly exit the program
 		if position == 5 {
