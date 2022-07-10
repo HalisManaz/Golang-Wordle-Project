@@ -36,7 +36,10 @@ func main() {
 		_, _ = fmt.Scanln(&guessWord)
 		c := exec.Command("cmd", "/c", "cls")
 		c.Stdout = os.Stdout
-		c.Run()
+		err := c.Run()
+		if err != nil {
+			return
+		}
 		//color.Println("<fg=255,255,255;>" + "_____" + "</>")
 
 		guessWord := strings.ToUpper(guessWord)
@@ -46,7 +49,7 @@ func main() {
 			break
 		} else if len([]rune(guessWord)) != 5 {
 			// Check input length is equal to 5 or not
-			err := fmt.Errorf("The word you enter must be five letters! Your input:%+v and input length: %+v", guessWord, len([]rune(guessWord)))
+			err := fmt.Errorf("the word you enter must be five letters Your input:%+v and input length: %+v", guessWord, len([]rune(guessWord)))
 			fmt.Println(err.Error())
 			continue
 		}
@@ -135,7 +138,7 @@ func main() {
 }
 
 func Intersection(first, second []int) []int {
-	intersections := []int{}
+	var intersections []int
 
 	for _, i := range first {
 		for _, j := range second {
@@ -147,7 +150,7 @@ func Intersection(first, second []int) []int {
 	return intersections
 }
 
-// difference returns the elements in `a` that aren't in `b`.
+// Difference returns the elements in `a` that aren't in `b`.
 func Difference(a, b []int) []int {
 	mb := make(map[int]struct{}, len(b))
 	for _, x := range b {
