@@ -19,7 +19,7 @@ word according to your guess
 
 **Example:**
 
-[![plot](./example.jpg)](https://github.com/HalisManaz/Golang-Wordle-Project/issues/1#issue-1301770720)
+![image](https://drive.google.com/uc?export=view&id=1P-KqosYRdHqEr0aPC02iv0GIuBOsefyf)
 
 ## How It Works
 - Random number are generated for selecting random words in word list
