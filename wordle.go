@@ -19,7 +19,6 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	randNum := rand.Intn(len(ValidWordList))
 	word := strings.ToUpper(ValidWordList[randNum])
-	fmt.Println(word, randNum)
 	fmt.Println("Welcome to Golang Word-le Project")
 	fmt.Println("----------------------------------------")
 
@@ -132,7 +131,6 @@ func main() {
 
 		}
 		// Restart feedback for next round
-		//feedbackColor = ""
 		round++
 	}
 }
